@@ -884,13 +884,13 @@ rte_eal_init(int argc, char **argv)
 	rte_eal_mp_remote_launch(sync_func, NULL, SKIP_MASTER);
 	rte_eal_mp_wait_lcore();
 
-	/* Probe all the buses and devices/drivers on them */
-	if (rte_bus_probe())
-		rte_panic("Cannot probe devices\n");
-
 	/* Probe & Initialize PCI devices */
 	if (rte_eal_pci_probe())
 		rte_panic("Cannot probe PCI\n");
+
+	/* Probe all the buses and devices/drivers on them */
+	if (rte_bus_probe())
+		rte_panic("Cannot probe devices\n");
 
 	if (rte_eal_dev_init() < 0)
 		rte_panic("Cannot init pmd devices\n");
