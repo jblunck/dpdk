@@ -892,9 +892,6 @@ rte_eal_init(int argc, char **argv)
 	if (rte_bus_probe())
 		rte_panic("Cannot probe devices\n");
 
-	if (rte_eal_dev_init() < 0)
-		rte_panic("Cannot init pmd devices\n");
-
 	rte_eal_mcfg_complete();
 
 	return fctret;
