@@ -338,9 +338,24 @@ vdev_probe(void)
 	return 0;
 }
 
+static struct rte_device *
+vdev_find_device(int (*match)(const struct rte_device *dev, const void *data),
+	const void *data)
+{
+	struct rte_vdev_device *dev;
+
+	TAILQ_FOREACH(dev, &vdev_device_list, next) {
+		if (match(&dev->device, data))
+			return &dev->device;
+	}
+
+	return NULL;
+}
+
 static struct rte_bus rte_vdev_bus = {
 	.scan = vdev_scan,
 	.probe = vdev_probe,
+	.find_device = vdev_find_device,
 };
 
 RTE_INIT(rte_vdev_bus_register);
