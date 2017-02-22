@@ -52,6 +52,9 @@ rte_bus_register(struct rte_bus *bus)
 	RTE_VERIFY(bus->probe);
 	RTE_VERIFY(bus->find_device);
 
+	/* Buses supporting attach also require detach */
+	RTE_VERIFY(!bus->attach || bus->detach);
+
 	TAILQ_INSERT_TAIL(&rte_bus_list, bus, next);
 	RTE_LOG(DEBUG, EAL, "Registered [%s] bus.\n", bus->name);
 }
