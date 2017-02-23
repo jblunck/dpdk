@@ -141,6 +141,26 @@ int rte_bus_probe(void);
 void rte_bus_dump(FILE *f);
 
 /**
+ * Bus iterator to find a particular bus.
+ *
+ * The callback function should return 0 if the bus doesn't match and non-zero
+ * if it does. If the callback returns non-zero this function will stop
+ * iterating over any more buses.
+ *
+ * @param match
+ *	 Callback function to check bus
+ *
+ * @param data
+ *	 Data to pass to match callback
+ *
+ * @return
+ *	 A pointer to a rte_bus structure or NULL in case no bus matches
+ */
+struct rte_bus *rte_bus_find(
+	int (*match)(const struct rte_bus *bus, const void *data),
+	const void *data);
+
+/**
  * Helper for Bus registration.
  * The constructor has higher priority than PMD constructors.
  */
