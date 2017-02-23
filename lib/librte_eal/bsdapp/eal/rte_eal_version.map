@@ -163,6 +163,7 @@ DPDK_17.05 {
 	global:
 
 	rte_bus_find;
+	rte_bus_find_by_device;
 	rte_cpu_is_supported;
 	rte_log_dump;
 	rte_log_register;
