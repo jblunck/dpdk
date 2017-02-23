@@ -352,10 +352,22 @@ vdev_find_device(int (*match)(const struct rte_device *dev, const void *data),
 	return NULL;
 }
 
+static int
+vdev_detach(struct rte_device *dev)
+{
+	/*
+	 * The virtual bus doesn't support 'unattached' devices so this is
+	 * actually equal to hotplugging removal of it.
+	 */
+	return rte_vdev_uninit(dev->name);
+}
+
 static struct rte_bus rte_vdev_bus = {
 	.scan = vdev_scan,
 	.probe = vdev_probe,
 	.find_device = vdev_find_device,
+	/* .attach = NULL, see comment on vdev_detach */
+	.detach = vdev_detach,
 };
 
 RTE_INIT(rte_vdev_bus_register);
