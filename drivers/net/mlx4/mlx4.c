@@ -5510,7 +5510,7 @@ priv_dev_interrupt_handler_install(struct priv *priv, struct rte_eth_dev *dev)
 	}
 }
 
-static struct eth_driver mlx4_driver;
+static struct rte_pci_driver mlx4_driver;
 
 /**
  * DPDK callback to register a PCI device.
@@ -5889,16 +5889,13 @@ static const struct rte_pci_id mlx4_pci_id_map[] = {
 	}
 };
 
-static struct eth_driver mlx4_driver = {
-	.pci_drv = {
-		.driver = {
-			.name = MLX4_DRIVER_NAME
-		},
-		.id_table = mlx4_pci_id_map,
-		.probe = mlx4_pci_probe,
-		.drv_flags = RTE_PCI_DRV_INTR_LSC,
+static struct rte_pci_driver mlx4_driver = {
+	.driver = {
+		.name = MLX4_DRIVER_NAME
 	},
-	.dev_private_size = sizeof(struct priv)
+	.id_table = mlx4_pci_id_map,
+	.probe = mlx4_pci_probe,
+	.drv_flags = RTE_PCI_DRV_INTR_LSC,
 };
 
 /**
