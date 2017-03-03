@@ -343,7 +343,7 @@ mlx5_args(struct priv *priv, struct rte_devargs *devargs)
 	return 0;
 }
 
-static struct eth_driver mlx5_driver;
+static struct rte_pci_driver mlx5_driver;
 
 /**
  * DPDK callback to register a PCI device.
@@ -373,7 +373,7 @@ mlx5_pci_probe(struct rte_pci_driver *pci_drv, struct rte_pci_device *pci_dev)
 	int i;
 
 	(void)pci_drv;
-	assert(pci_drv == &mlx5_driver.pci_drv);
+	assert(pci_drv == &mlx5_driver);
 	/* Get mlx5_dev[] index. */
 	idx = mlx5_dev_idx(&pci_dev->addr);
 	if (idx == -1) {
@@ -761,16 +761,13 @@ static const struct rte_pci_id mlx5_pci_id_map[] = {
 	}
 };
 
-static struct eth_driver mlx5_driver = {
-	.pci_drv = {
-		.driver = {
-			.name = MLX5_DRIVER_NAME
-		},
-		.id_table = mlx5_pci_id_map,
-		.probe = mlx5_pci_probe,
-		.drv_flags = RTE_PCI_DRV_INTR_LSC,
+static struct rte_pci_driver mlx5_driver = {
+	.driver = {
+		.name = MLX5_DRIVER_NAME
 	},
-	.dev_private_size = sizeof(struct priv)
+	.id_table = mlx5_pci_id_map,
+	.probe = mlx5_pci_probe,
+	.drv_flags = RTE_PCI_DRV_INTR_LSC,
 };
 
 /**
