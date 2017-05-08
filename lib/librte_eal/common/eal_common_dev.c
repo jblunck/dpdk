@@ -37,6 +37,7 @@
 #include <inttypes.h>
 #include <sys/queue.h>
 
+#include <rte_bus.h>
 #include <rte_dev.h>
 #include <rte_devargs.h>
 #include <rte_debug.h>
@@ -45,50 +46,98 @@
 
 #include "eal_private.h"
 
+static int cmp_detached_dev_name(const struct rte_device *dev,
+	const void *_name)
+{
+	const char *name = _name;
+
+	/* skip attached devices */
+	if (dev->driver)
+		return 0;
+
+	return !strcmp(dev->name, name);
+}
+
 int rte_eal_dev_attach(const char *name, const char *devargs)
 {
-	struct rte_pci_addr addr;
+	struct rte_device *dev;
+	int ret;
 
 	if (name == NULL || devargs == NULL) {
 		RTE_LOG(ERR, EAL, "Invalid device or arguments provided\n");
 		return -EINVAL;
 	}
 
-	if (eal_parse_pci_DomBDF(name, &addr) == 0) {
-		if (rte_pci_probe_one(&addr) < 0)
-			goto err;
+	dev = rte_bus_find_device(NULL, cmp_detached_dev_name, name);
+	if (dev) {
+		struct rte_bus *bus;
 
-	} else {
-		if (rte_vdev_init(name, devargs))
-			goto err;
+		bus = rte_bus_find_by_device(dev);
+		if (!bus) {
+			RTE_LOG(ERR, EAL, "Cannot find bus for device (%s)\n",
+				name);
+			return -EINVAL;
+		}
+
+		if (!bus->attach) {
+			RTE_LOG(ERR, EAL, "Bus function not supported\n");
+			return -ENOTSUP;
+		}
+
+		ret = bus->attach(dev);
+		goto out;
 	}
 
-	return 0;
+	/*
+	 * If we haven't found a bus device the user meant to "hotplug" a
+	 * virtual device instead.
+	 */
+	ret = rte_vdev_init(name, devargs);
+out:
+	if (ret)
+		RTE_LOG(ERR, EAL, "Driver cannot attach the device (%s)\n",
+			name);
+	return ret;
+}
 
-err:
-	RTE_LOG(ERR, EAL, "Driver cannot attach the device (%s)\n", name);
-	return -EINVAL;
+static int cmp_dev_name(const struct rte_device *dev, const void *_name)
+{
+	const char *name = _name;
+
+	return !strcmp(dev->name, name);
 }
 
 int rte_eal_dev_detach(const char *name)
 {
-	struct rte_pci_addr addr;
+	struct rte_device *dev;
+	struct rte_bus *bus;
+	int ret;
 
 	if (name == NULL) {
 		RTE_LOG(ERR, EAL, "Invalid device provided.\n");
 		return -EINVAL;
 	}
 
-	if (eal_parse_pci_DomBDF(name, &addr) == 0) {
-		if (rte_pci_detach(&addr) < 0)
-			goto err;
-	} else {
-		if (rte_vdev_uninit(name))
-			goto err;
+	dev = rte_bus_find_device(NULL, cmp_dev_name, name);
+	if (!dev) {
+		RTE_LOG(ERR, EAL, "Cannot find device (%s)\n", name);
+		return -EINVAL;
 	}
-	return 0;
 
-err:
-	RTE_LOG(ERR, EAL, "Driver cannot detach the device (%s)\n", name);
-	return -EINVAL;
+	bus = rte_bus_find_by_device(dev);
+	if (!bus) {
+		RTE_LOG(ERR, EAL, "Cannot find bus for device (%s)\n", name);
+		return -EINVAL;
+	}
+
+	if (!bus->detach) {
+		RTE_LOG(ERR, EAL, "Bus function not supported\n");
+		return -ENOTSUP;
+	}
+
+	ret = bus->detach(dev);
+	if (ret)
+		RTE_LOG(ERR, EAL, "Driver cannot detach the device (%s)\n",
+			name);
+	return ret;
 }
