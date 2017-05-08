@@ -169,6 +169,32 @@ struct rte_bus *rte_bus_find(
 	const void *data);
 
 /**
+ * Bus iterator to find a particular device.
+ *
+ * The callback function should return 0 if the device doesn't match and
+ * non-zero if it does. If the callback returns non-zero this function will
+ * stop iterating over any more buses and devices.
+ * To continue a search the device of a previous search is passed via the start
+ * parameters.
+ *
+ * @param start
+ *	 Start device of the iteration
+ *
+ * @param match
+ *	 Callback function to check device
+ *
+ * @param data
+ *	 Data to pass to match callback
+ *
+ * @return
+ *	 A pointer to a rte_bus structure or NULL in case no bus matches
+ */
+struct rte_device *
+rte_bus_find_device(const struct rte_device *start,
+	int (*match)(const struct rte_device *dev, const void *data),
+	const void *data);
+
+/**
  * Find the registered bus for a particular device.
  */
 struct rte_bus *rte_bus_find_by_device(const struct rte_device *dev);

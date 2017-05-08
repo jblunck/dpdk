@@ -182,3 +182,29 @@ struct rte_bus *rte_bus_find_by_device(const struct rte_device *dev)
 {
 	return rte_bus_find(bus_find_device, (const void *)dev);
 }
+
+struct rte_device *
+rte_bus_find_device(const struct rte_device *start,
+	int (*match)(const struct rte_device *dev, const void *data),
+	const void *data)
+{
+	struct rte_bus *bus;
+	struct rte_device *dev = NULL;
+
+	if (start) {
+		bus = rte_bus_find_by_device(start);
+		if (!bus)
+			return NULL;
+	} else
+		bus = TAILQ_FIRST(&rte_bus_list);
+
+	while (bus) {
+		dev = bus->find_device(match, data);
+		if (dev)
+			break;
+
+		TAILQ_NEXT(bus, next);
+	}
+
+	return dev;
+}
