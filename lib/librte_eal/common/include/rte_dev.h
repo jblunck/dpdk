@@ -123,6 +123,17 @@ struct rte_mem_resource {
 	void *addr;         /**< Virtual address, NULL when not mapped. */
 };
 
+/* FIXME: Forward declare */
+struct rte_device;
+
+/**
+ * Unplug the device from the device driver.
+ *
+ * @param dev
+ *   A pointer to a rte_device structure.
+ */
+int rte_eal_device_detach(struct rte_device *dev);
+
 /**
  * A structure describing a device driver.
  */

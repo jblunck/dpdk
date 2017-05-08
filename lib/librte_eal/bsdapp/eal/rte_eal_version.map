@@ -162,6 +162,7 @@ DPDK_17.02 {
 DPDK_17.05 {
 	global:
 
+	rte_eal_device_detach;
 	rte_bus_find;
 	rte_bus_find_by_device;
 	rte_bus_find_device;

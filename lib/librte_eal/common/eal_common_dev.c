@@ -100,6 +100,30 @@ out:
 	return ret;
 }
 
+int rte_eal_device_detach(struct rte_device *dev)
+{
+	struct rte_bus *bus;
+	int ret;
+
+	bus = rte_bus_find_by_device(dev);
+	if (!bus) {
+		RTE_LOG(ERR, EAL, "Cannot find bus for device (%s)\n",
+			dev->name);
+		return -EINVAL;
+	}
+
+	if (!bus->detach) {
+		RTE_LOG(ERR, EAL, "Bus function not supported\n");
+		return -ENOTSUP;
+	}
+
+	ret = bus->detach(dev);
+	if (ret)
+		RTE_LOG(ERR, EAL, "Driver cannot detach the device (%s)\n",
+			dev->name);
+	return ret;
+}
+
 static int cmp_dev_name(const struct rte_device *dev, const void *_name)
 {
 	const char *name = _name;
@@ -110,8 +134,6 @@ static int cmp_dev_name(const struct rte_device *dev, const void *_name)
 int rte_eal_dev_detach(const char *name)
 {
 	struct rte_device *dev;
-	struct rte_bus *bus;
-	int ret;
 
 	if (name == NULL) {
 		RTE_LOG(ERR, EAL, "Invalid device provided.\n");
@@ -124,20 +146,5 @@ int rte_eal_dev_detach(const char *name)
 		return -EINVAL;
 	}
 
-	bus = rte_bus_find_by_device(dev);
-	if (!bus) {
-		RTE_LOG(ERR, EAL, "Cannot find bus for device (%s)\n", name);
-		return -EINVAL;
-	}
-
-	if (!bus->detach) {
-		RTE_LOG(ERR, EAL, "Bus function not supported\n");
-		return -ENOTSUP;
-	}
-
-	ret = bus->detach(dev);
-	if (ret)
-		RTE_LOG(ERR, EAL, "Driver cannot detach the device (%s)\n",
-			name);
-	return ret;
+	return rte_eal_device_detach(dev);
 }
